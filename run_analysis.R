@@ -14,24 +14,35 @@ activityLabels <- read.table("UCI HAR Dataset/activity_labels.txt", as.is = TRUE
 ## Read features.
 features <- read.table("UCI HAR Dataset/features.txt", as.is = TRUE)
 
-## Select only features that are a mean or a standart deviation.
+## [Task 2] Select only features that are a mean or a standart deviation.
 selected <- grep("[tf].+-(mean|std)\\(\\)", features[[2]])
 
-## 'scan' function loads data into a vector. We need data in table form.
+## We used 'scan' function to load data into a vector. We need data in table form.
 ## Using 'dim' function data is not copied; however, data transformed to matrix column by
-## column. we will take transpose of it to obtain the target matrix.
+## column. We will take transpose of it to obtain the target matrix.
 dim(testData) <- c(nrow(features), length(testSubjects))
 dim(trainData) <- c(nrow(features), length(trainSubjects))
 
-## Merge Data
+## [Task 1] Merge the training and the test sets to create one data set.
 subjects <- c(testSubjects, trainSubjects)
 activities <- c(testActivities, trainActivities)
 data <- cbind(testData[selected,], trainData[selected,])
 
-## Combine all into data frame
+## Combine all into data frame.
+## [Task 3] Use descriptive activity names to name the activities in the data set.
 df1 <- data.frame(subject = subjects, 
-                      activity = factor(activities, activityLabels[[1]], labels = activityLabels[[2]]), 
-                      t(data))
+                  activity = factor(activities, activityLabels[[1]], labels = activityLabels[[2]]), 
+                  t(data))
 
-## Set column names from features' names.
-names(df1) <- c("subject", "activity",  features[selected, 2])
+## [Task 4] Set column names from features' names to have descriptive variable
+## names.
+colNames <- gsub("[()-]", "", features[selected, 2])
+names(df1) <- c("subject", "activity", colNames)
+
+## [Task 5] Create a second, independent tidy data set with the average of each 
+## variable for each activity and each subject. 
+df2 <- aggregate(df1[, colNames], df1[, c("subject", "activity")], mean)
+names(df2) <- c("subject", "activity", paste("ave", colNames, sep = ""))
+    
+## Output.
+write.table(df2, file = "getdata-output.txt", row.names = FALSE)
